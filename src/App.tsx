@@ -10,6 +10,7 @@ import { mockResults } from './mockData';
 import Papa from 'papaparse';
 import WebsiteScraperView from './WebsiteScraperView';
 import SettingsPage from './SettingsPage';
+import EmailValidationView from './EmailValidationView';
 import { searchAllSources, getAPIConfig } from './apiServices';
 
 export default function App() {
@@ -247,6 +248,7 @@ export default function App() {
           {[
             { id: 'search' as ViewType, icon: Search, label: 'Search' },
             { id: 'scraper' as ViewType, icon: Globe, label: 'Web Scraper' },
+            { id: 'validator' as ViewType, icon: Mail, label: 'Email Validator' },
             { id: 'results' as ViewType, icon: Database, label: 'Results', badge: results.length },
             { id: 'export' as ViewType, icon: Download, label: 'Export' },
             { id: 'settings' as ViewType, icon: Settings, label: 'Settings' },
@@ -295,6 +297,7 @@ export default function App() {
               <h2 className="text-xl font-semibold text-white">
                 {currentView === 'search' && 'Search Contacts'}
                 {currentView === 'scraper' && 'Website Scraper'}
+                {currentView === 'validator' && 'Email Deliverability Testing'}
                 {currentView === 'results' && 'Search Results'}
                 {currentView === 'export' && 'Export Data'}
                 {currentView === 'settings' && 'Settings & Configuration'}
@@ -303,6 +306,7 @@ export default function App() {
               <p className="text-sm text-gray-500 mt-0.5">
                 {currentView === 'search' && 'Find business emails from Meta, Google Maps & GMB'}
                 {currentView === 'scraper' && 'Extract contact info directly from business websites'}
+                {currentView === 'validator' && 'Verify email addresses are deliverable'}
                 {currentView === 'results' && `${results.length} contacts found`}
                 {currentView === 'export' && 'Download your contacts in various formats'}
                 {currentView === 'settings' && 'Configure scraping parameters and API keys'}
@@ -530,6 +534,11 @@ export default function App() {
           {/* Web Scraper View */}
           {currentView === 'scraper' && (
             <WebsiteScraperView />
+          )}
+
+          {/* Email Validator View */}
+          {currentView === 'validator' && (
+            <EmailValidationView />
           )}
 
           {/* Results View */}

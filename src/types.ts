@@ -38,4 +38,4 @@ export interface WebsiteScrapeResult {
   scrapedAt: string;
 }
 
-export type ViewType = 'search' | 'results' | 'scraper' | 'export' | 'settings' | 'compliance';
+export type ViewType = 'search' | 'results' | 'scraper' | 'validator' | 'export' | 'settings' | 'compliance';
