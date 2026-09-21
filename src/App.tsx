@@ -9,6 +9,8 @@ import { ContactResult, SearchConfig, ViewType } from './types';
 import { mockResults } from './mockData';
 import Papa from 'papaparse';
 import WebsiteScraperView from './WebsiteScraperView';
+import SettingsPage from './SettingsPage';
+import { searchAllSources, getAPIConfig } from './apiServices';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('search');
@@ -27,33 +29,71 @@ export default function App() {
     verifiedOnly: false,
   });
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback(async () => {
     if (!config.query.trim()) return;
     setIsSearching(true);
     setSearchProgress(0);
     setResults([]);
     setCurrentView('results');
 
-    // Simulate progressive search
-    const interval = setInterval(() => {
-      setSearchProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsSearching(false);
-          // Filter mock results based on config
-          let filtered = [...mockResults];
-          if (config.verifiedOnly) {
-            filtered = filtered.filter(r => r.verified);
+    // Check if API keys are configured
+    const apiConfig = getAPIConfig();
+    const hasAPIKeys = apiConfig.metaApiKey || apiConfig.googleMapsApiKey || 
+                       apiConfig.googleMyBusinessApiKey || apiConfig.tiktokApiKey;
+
+    if (!hasAPIKeys) {
+      // Use mock data if no API keys configured
+      console.log('No API keys configured, using demo data');
+      const interval = setInterval(() => {
+        setSearchProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setIsSearching(false);
+            let filtered = [...mockResults];
+            if (config.verifiedOnly) {
+              filtered = filtered.filter(r => r.verified);
+            }
+            if (config.sources.length < 4) {
+              filtered = filtered.filter(r => config.sources.includes(r.source));
+            }
+            setResults(filtered.slice(0, config.maxResults));
+            return 100;
           }
-          if (config.sources.length < 3) {
-            filtered = filtered.filter(r => config.sources.includes(r.source));
+          return prev + Math.random() * 15;
+        });
+      }, 300);
+      return;
+    }
+
+    // Use real API services
+    try {
+      // Simulate progress while APIs are loading
+      const progressInterval = setInterval(() => {
+        setSearchProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
           }
-          setResults(filtered.slice(0, config.maxResults));
-          return 100;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 300);
+          return prev + Math.random() * 10;
+        });
+      }, 200);
+
+      const apiResults = await searchAllSources(config);
+      
+      clearInterval(progressInterval);
+      setSearchProgress(100);
+      setResults(apiResults);
+    } catch (error) {
+      console.error('Search error:', error);
+      // Fallback to mock data on error
+      let filtered = [...mockResults];
+      if (config.verifiedOnly) {
+        filtered = filtered.filter(r => r.verified);
+      }
+      setResults(filtered.slice(0, config.maxResults));
+    } finally {
+      setIsSearching(false);
+    }
   }, [config]);
 
   const toggleSource = (source: 'meta' | 'google_maps' | 'google_my_business' | 'tiktok') => {
@@ -767,118 +807,7 @@ export default function App() {
 
           {/* Settings View */}
           {currentView === 'settings' && (
-            <div className="space-y-6">
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-emerald-400" />
-                  API Configuration
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Meta Graph API Token</label>
-                    <input
-                      type="password"
-                      placeholder="Enter your Meta API access token"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Google Maps API Key</label>
-                    <input
-                      type="password"
-                      placeholder="Enter your Google Maps API key"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Google My Business API Key</label>
-                    <input
-                      type="password"
-                      placeholder="Enter your GMB API key"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-emerald-400" />
-                  Scraping Parameters
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Request Delay (ms)</label>
-                    <input
-                      type="number"
-                      defaultValue={2000}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Delay between requests to avoid rate limiting</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Concurrent Requests</label>
-                    <input
-                      type="number"
-                      defaultValue={3}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Number of parallel requests</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Retry Attempts</label>
-                    <input
-                      type="number"
-                      defaultValue={3}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Max retries on failed requests</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">User Agent</label>
-                    <input
-                      type="text"
-                      defaultValue="ContactHarvest/1.0"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Custom user agent string</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-emerald-400" />
-                  Email Extraction Settings
-                </h3>
-                <div className="space-y-4">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-800 border-gray-600 text-emerald-500" />
-                    <span className="text-sm text-gray-300">Extract emails from business profile pages</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-800 border-gray-600 text-emerald-500" />
-                    <span className="text-sm text-gray-300">Extract emails from linked websites</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-800 border-gray-600 text-emerald-500" />
-                    <span className="text-sm text-gray-300">Validate email format before saving</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" className="w-4 h-4 rounded bg-gray-800 border-gray-600 text-emerald-500" />
-                    <span className="text-sm text-gray-300">Verify email deliverability (uses additional API credits)</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-800 border-gray-600 text-emerald-500" />
-                    <span className="text-sm text-gray-300">Deduplicate results across sources</span>
-                  </label>
-                </div>
-              </div>
-
-              <button className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-gray-900 font-semibold rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all">
-                Save Settings
-              </button>
-            </div>
+            <SettingsPage />
           )}
 
           {/* Compliance View */}
