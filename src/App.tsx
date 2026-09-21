@@ -18,7 +18,7 @@ export default function App() {
   const [config, setConfig] = useState<SearchConfig>({
     query: '',
     location: '',
-    sources: ['meta', 'google_maps', 'google_my_business'],
+    sources: ['meta', 'google_maps', 'google_my_business', 'tiktok'],
     category: '',
     maxResults: 50,
     includePhone: true,
@@ -55,7 +55,7 @@ export default function App() {
     }, 300);
   }, [config]);
 
-  const toggleSource = (source: 'meta' | 'google_maps' | 'google_my_business') => {
+  const toggleSource = (source: 'meta' | 'google_maps' | 'google_my_business' | 'tiktok') => {
     setConfig(prev => ({
       ...prev,
       sources: prev.sources.includes(source)
@@ -128,11 +128,18 @@ export default function App() {
     link.click();
   };
 
+  const TikTokIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+    </svg>
+  );
+
   const getSourceIcon = (source: string) => {
     switch (source) {
       case 'meta': return <Facebook className="w-4 h-4 text-blue-500" />;
       case 'google_maps': return <MapPin className="w-4 h-4 text-green-500" />;
       case 'google_my_business': return <Building2 className="w-4 h-4 text-yellow-500" />;
+      case 'tiktok': return <TikTokIcon className="w-4 h-4 text-pink-500" />;
       default: return <Globe className="w-4 h-4" />;
     }
   };
@@ -142,6 +149,7 @@ export default function App() {
       case 'meta': return 'Meta Business';
       case 'google_maps': return 'Google Maps';
       case 'google_my_business': return 'Google My Business';
+      case 'tiktok': return 'TikTok Business';
       default: return source;
     }
   };
@@ -151,6 +159,7 @@ export default function App() {
       case 'meta': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
       case 'google_maps': return 'bg-green-500/10 text-green-400 border-green-500/20';
       case 'google_my_business': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+      case 'tiktok': return 'bg-pink-500/10 text-pink-400 border-pink-500/20';
       default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
   };
@@ -161,6 +170,7 @@ export default function App() {
       case 'meta': return 'bg-blue-500/10 border-blue-500/30 ring-1 ring-blue-500/20';
       case 'google_maps': return 'bg-green-500/10 border-green-500/30 ring-1 ring-green-500/20';
       case 'google_my_business': return 'bg-yellow-500/10 border-yellow-500/30 ring-1 ring-yellow-500/20';
+      case 'tiktok': return 'bg-pink-500/10 border-pink-500/30 ring-1 ring-pink-500/20';
       default: return 'bg-gray-500/10 border-gray-500/30 ring-1 ring-gray-500/20';
     }
   };
@@ -171,6 +181,7 @@ export default function App() {
       case 'meta': return 'text-blue-400';
       case 'google_maps': return 'text-green-400';
       case 'google_my_business': return 'text-yellow-400';
+      case 'tiktok': return 'text-pink-400';
       default: return 'text-gray-400';
     }
   };
@@ -279,7 +290,7 @@ export default function App() {
                 <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                   <div className="flex items-center justify-between mb-3">
                     <Database className="w-5 h-5 text-blue-400" />
-                    <span className="text-2xl font-bold text-white">3</span>
+                    <span className="text-2xl font-bold text-white">4</span>
                   </div>
                   <p className="text-sm text-gray-500">Sources Active</p>
                 </div>
@@ -371,11 +382,12 @@ export default function App() {
                   <label className="block text-sm font-medium text-gray-300 mb-3">
                     Data Sources
                   </label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
                       { id: 'meta' as const, name: 'Meta Business Pages', desc: 'Facebook & Instagram business profiles', icon: Facebook, color: 'blue' },
                       { id: 'google_maps' as const, name: 'Google Maps', desc: 'Business listings from Maps', icon: MapPin, color: 'green' },
                       { id: 'google_my_business' as const, name: 'Google My Business', desc: 'Verified business profiles', icon: Building2, color: 'yellow' },
+                      { id: 'tiktok' as const, name: 'TikTok Business', desc: 'TikTok business accounts & creators', icon: TikTokIcon, color: 'pink' },
                     ].map(source => {
                       const isActive = config.sources.includes(source.id);
                       return (
@@ -916,6 +928,17 @@ export default function App() {
                       Ensure you have proper API credentials and follow rate limits.
                     </p>
                   </div>
+                  <div className="bg-gray-800/50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-pink-400 mb-2 flex items-center gap-2">
+                      <TikTokIcon className="w-4 h-4" />
+                      TikTok
+                    </h4>
+                    <p className="text-xs text-gray-400">
+                      TikTok's Terms of Service prohibit unauthorized automated access to their platform. 
+                      Use the official TikTok for Developers API and TikTok Business API for legitimate business data access. 
+                      Scraping user profiles or business accounts without permission violates their Community Guidelines and Terms of Use.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -962,6 +985,7 @@ export default function App() {
                     { name: 'Meta Graph API', desc: 'Official API for accessing Facebook business data', link: 'developers.facebook.com' },
                     { name: 'Google Places API', desc: 'Official API for business location data', link: 'developers.google.com/maps' },
                     { name: 'Google Business Profile API', desc: 'Official API for GMB data management', link: 'developers.google.com/my-business' },
+                    { name: 'TikTok for Developers', desc: 'Official API for TikTok business data', link: 'developers.tiktok.com' },
                     { name: 'Hunter.io', desc: 'Email finder and verification service', link: 'hunter.io' },
                   ].map((alt, i) => (
                     <div key={i} className="bg-gray-800/50 rounded-lg p-4">

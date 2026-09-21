@@ -5,7 +5,7 @@ export interface ContactResult {
   phone: string;
   website: string;
   address: string;
-  source: 'meta' | 'google_maps' | 'google_my_business';
+  source: 'meta' | 'google_maps' | 'google_my_business' | 'tiktok';
   category: string;
   rating?: number;
   reviews?: number;
@@ -16,7 +16,7 @@ export interface ContactResult {
 export interface SearchConfig {
   query: string;
   location: string;
-  sources: ('meta' | 'google_maps' | 'google_my_business')[];
+  sources: ('meta' | 'google_maps' | 'google_my_business' | 'tiktok')[];
   category: string;
   maxResults: number;
   includePhone: boolean;
