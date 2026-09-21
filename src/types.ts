@@ -24,4 +24,18 @@ export interface SearchConfig {
   verifiedOnly: boolean;
 }
 
-export type ViewType = 'search' | 'results' | 'export' | 'settings' | 'compliance';
+export interface WebsiteScrapeResult {
+  url: string;
+  businessName: string;
+  emails: string[];
+  phones: string[];
+  address: string;
+  socialLinks: Record<string, string[]>;
+  description: string;
+  pagesScraped: number;
+  success: boolean;
+  error: string;
+  scrapedAt: string;
+}
+
+export type ViewType = 'search' | 'results' | 'scraper' | 'export' | 'settings' | 'compliance';

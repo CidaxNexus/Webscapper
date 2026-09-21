@@ -8,6 +8,7 @@ import {
 import { ContactResult, SearchConfig, ViewType } from './types';
 import { mockResults } from './mockData';
 import Papa from 'papaparse';
+import WebsiteScraperView from './WebsiteScraperView';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('search');
@@ -205,6 +206,7 @@ export default function App() {
         <nav className="flex-1 p-4 space-y-1">
           {[
             { id: 'search' as ViewType, icon: Search, label: 'Search' },
+            { id: 'scraper' as ViewType, icon: Globe, label: 'Web Scraper' },
             { id: 'results' as ViewType, icon: Database, label: 'Results', badge: results.length },
             { id: 'export' as ViewType, icon: Download, label: 'Export' },
             { id: 'settings' as ViewType, icon: Settings, label: 'Settings' },
@@ -252,6 +254,7 @@ export default function App() {
             <div>
               <h2 className="text-xl font-semibold text-white">
                 {currentView === 'search' && 'Search Contacts'}
+                {currentView === 'scraper' && 'Website Scraper'}
                 {currentView === 'results' && 'Search Results'}
                 {currentView === 'export' && 'Export Data'}
                 {currentView === 'settings' && 'Settings & Configuration'}
@@ -259,6 +262,7 @@ export default function App() {
               </h2>
               <p className="text-sm text-gray-500 mt-0.5">
                 {currentView === 'search' && 'Find business emails from Meta, Google Maps & GMB'}
+                {currentView === 'scraper' && 'Extract contact info directly from business websites'}
                 {currentView === 'results' && `${results.length} contacts found`}
                 {currentView === 'export' && 'Download your contacts in various formats'}
                 {currentView === 'settings' && 'Configure scraping parameters and API keys'}
@@ -481,6 +485,11 @@ export default function App() {
                 </ul>
               </div>
             </div>
+          )}
+
+          {/* Web Scraper View */}
+          {currentView === 'scraper' && (
+            <WebsiteScraperView />
           )}
 
           {/* Results View */}
